@@ -17,7 +17,9 @@ class RequestHandler:
             limits = httpx.Limits(
                 max_connections = max_connections,
                 max_keepalive_connections = max_connections // 2
-            )
+            ),
+
+            verify = False
         )
 
         #note that this is just limited for the sake of the
@@ -42,7 +44,7 @@ class RequestHandler:
 
     async def send_request(self, request: Request, *args, **kwargs) -> Response:
 
-        response: Response | None = None
+        response: Response
 
         try:
             async with self.semaphore:

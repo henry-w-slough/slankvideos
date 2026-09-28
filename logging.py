@@ -37,6 +37,11 @@ def get_logs() -> list[Log]:
     return list(_logs)
 
 
+def clear_log() -> None:
+    """Removes all items from the log."""
+    _logs.clear()
+
+
 def set_max_logs(max: int) -> None:
     """Sets the maximum amount of persistent logs. Rebuilds logs
     in it's current state to the new size by removing oldest logs."""

@@ -5,5 +5,6 @@ from dataclasses import dataclass
 class Request:
 
     url: str
-    headers: dict[str, str]
     method: str
+    headers: dict[str, str] | None = None
+    cookies: dict[str, str] | None = None

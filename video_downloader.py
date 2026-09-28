@@ -32,59 +32,68 @@ class VideoDownloader:
 
 
     async def download(self, video_url: str, src: str) -> None:
+
+        all_playlists = await self.web_scraper.resolve_m3u8_playlists(
+            video_url
+        )
+
+        playlist_info = self.m3u8_handler.get_best_variant(all_playlists)
+
+        playlist_response = await self.request_handler.send_request(
+            Request(
+                playlist_info.url,
+                "get",
+                playlist_info.headers
+            )
+        )
+
+        if playlist_response.error is not None:
+               raise playlist_response.error
         
-        if os.path.exists(src):
-            raise ValueError(f"'{src}' already exists on disk.")
+        if playlist_response.http_response is None:
+             raise RuntimeError("HTTP response for playlist was None.")
 
-        playlists_data = await self.web_scraper.resolve_m3u8_playlists(video_url)
 
-        # change this shit
-        playlist_data = playlists_data[0]
-
-        master_response: Response = await self.request_handler.send_request(
-            playlist_data.url, "get", headers=playlist_data.headers
+        playlist = self.m3u8_handler.get_m3u8(
+            playlist_response.http_response.text,
+            playlist_info.url
         )
 
-        if master_response.error is not None:
-            print(master_response.error_message)
-            raise master_response.error
-
-        if master_response.http_response is None:
-            raise RuntimeError("Master playlist could not be accessed.")
-
-        master_playlist = self.m3u8_handler.get_m3u8(master_response.http_response.text, master_response.url)
-
-        if not master_playlist.playlists:
-            raise RuntimeError("No variant playlists found in master.")
-
-        variant = master_playlist.playlists[0]
-
-        variant_response: Response = await self.request_handler.send_request(
-            variant.absolute_uri, "get", headers=playlist_data.headers
-        )
-
-        if variant_response.error is not None:
-            print(variant_response.error_message)
-            raise variant_response.error
-
-        if variant_response.http_response is None:
-            raise RuntimeError("Variant playlist could not be accessed.")
-
-        playlist = self.m3u8_handler.get_m3u8(variant_response.http_response.text, variant_response.url)
-
-        urls = [
-            Request(segment.absolute_uri, playlist_data.headers, "get")
-            for segment in playlist.segments
+        segment_requests = [
+            Request(
+                seg.absolute_uri, "get", {
+                    "accept": "*/*",
+                    "accept-encoding": "gzip, deflate, br, zstd",
+                    "accept-language": "en-US,en;q=0.9",
+                    "connection": "keep-alive",
+                    "origin": "https://cinejoy.pk",
+                    "referer": "https://cinejoy.pk/",
+                    "sec-fetch-dest": "empty",
+                    "sec-fetch-mode": "cors",
+                    "sec-fetch-site": "cross-site",
+                    "sec-gpc": "1",
+                    "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:156.0) Gecko/20100101 Firefox/156.0",
+                }
+            ) for seg in playlist.segments
         ]
 
         os.makedirs(os.path.dirname(src), exist_ok=True)
+
         self.data_handler.open_file(src)
 
-        await self.request_handler.get_response_batch(urls, self.data_handler.write_response)
+        await self.request_handler.request_batch(
+            segment_requests,
+            self.data_handler.write_response
+        )
 
         self.data_handler.close_file()
-            
-        
+
+
+
+
+
+
+
 
 
 

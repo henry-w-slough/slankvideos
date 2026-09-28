@@ -26,12 +26,12 @@ class RequestHandler:
         self.semaphore = asyncio.Semaphore(max_requests)
 
 
-    async def get_response_batch(self, requests: list[Request], on_result: Callable[[Response], Awaitable[None]]) -> None:
-        """Takes the given requests and passes their results into on_result().
-        Note that on_result must take a Response as an argument
+    async def request_batch(self, requests: list[Request], on_result: Callable[[Response], Awaitable[None]]) -> None:
+        """Takes the given requests and passes their responses into on_result().
+        Note that on_result must take a Response as an argument.
         """
         results = await asyncio.gather(
-            *(self.send_request(request.url, request.method, headers=request.headers) 
+            *(self.send_request(request) 
               for request in requests
             )
         )
@@ -40,80 +40,99 @@ class RequestHandler:
             await on_result(result)
 
 
-    async def send_request(self, url: str, method: str, *args, headers: dict[str, str], **kwargs) -> Response:
-        
+    async def send_request(self, request: Request, *args, **kwargs) -> Response:
+
+        response: Response | None = None
+
         try:
             async with self.semaphore:
-                response: httpx.Response = await self.client.request(
-                    method,
-                    url,
-                    headers = headers,
+                http_response: httpx.Response = await self.client.request(
+                    request.method,
+                    request.url,
+                    headers = request.headers,
+                    cookies = request.cookies,
                     *args, **kwargs
                 )
-            response.raise_for_status()
-            return Response(
+            http_response.raise_for_status()
+            response = Response(
                 True,
-                url,
-                response,
+                request.url,
+                http_response,
             )
         
         except httpx.ConnectError as e:
-            return Response(
+            response = Response(
                 False,
-                url,
+                request.url,
                 error = e,
-                error_message = f"Failed to establish connection to '{url}'."
+                error_message = f"Failed to establish connection to '{request.url}'."
             )
 
         except httpx.ConnectTimeout as e:
-            return Response(
+            response = Response(
                 False,
-                url,
+                request.url,
                 error = e,
-                error_message = f"Timed out while trying to connect to '{url}'."
+                error_message = f"Timed out while trying to connect to '{request.url}'."
             )
 
         except httpx.ReadTimeout as e:
-            return Response(
+            response = Response(
                 False,
-                url,
+                request.url,
                 error = e,
-                error_message = f"Timed out while receiving data from '{url}'."
+                error_message = f"Timed out while receiving data from '{request.url}'."
             )
 
         except httpx.PoolTimeout as e:
-            return Response(
+            response = Response(
                 False,
-                url,
+                request.url,
                 error = e,
                 error_message = f"Timed out while trying to acquire connection from connection pool."
             )
 
         except httpx.HTTPStatusError as e:
-            return Response(
+            response = Response(
                 False,
-                url,
+                request.url,
                 error = e,
-                error_message = f"Got {e.response.status_code} while connecting to '{url}'."
+                error_message = f"Got {e.response.status_code} while connecting to '{request.url}'."
             )
 
 
         except httpx.RequestError as e:
-            return Response(
+            response = Response(
                 False,
-                url,
+                request.url,
                 error = e,
-                error_message = f"HTTP request failed to '{url}'."
+                error_message = f"HTTP request failed to '{request.url}'."
             )
 
 
         except Exception as e:
-            return Response(
+            response = Response(
                 False,
-                url,
+                request.url,
                 error = e,
-                error_message = f"Caught unexpected exception while connecting to '{url}'"
+                error_message = f"Caught unexpected exception while connecting to '{request.url}'"
             )
+
+
+        if response.ok:
+            assert response.http_response is not None
+            logging.log(
+                f"Request to {request.url} succeeded with response code {response.http_response.status_code}",
+                logging.Severity.INFO
+            )
+        else:
+            assert response.error is not None
+            logging.log(
+                f"Request to {request.url} raised Exception (type: {type(response.error).__name__}). Message: '{response.error_message}'",
+                logging.Severity.ERROR
+            )  
+
+        return response
 
 
         

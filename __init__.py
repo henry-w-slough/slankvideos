@@ -4,8 +4,10 @@ from .core.m3u8_handler import M3U8Handler
 from .core.data_handler import DataHandler
 
 from .models.request import Request
-from .models.responses import Response
+from .models.responses import Response, ErrorResponse, SuccessResponse
+from .models.proxy_data import ProxyData
 
-from slankvideos.video_downloader import VideoDownloader
+from .video_downloader import VideoDownloader
 
-from . import logging
+from .logging import logging
+from .logging.pretty_log import PrettyLog

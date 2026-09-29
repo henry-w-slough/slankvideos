@@ -5,7 +5,7 @@ from .core.data_handler import DataHandler
 from .models.request import Request
 from .models.responses import Response, ErrorResponse, SuccessResponse
 from .models.m3u8_data import M3U8Data
-from . import logging
+from .logging import logging
 
 import m3u8
 import os

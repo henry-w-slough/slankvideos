@@ -1,4 +1,5 @@
-from ..models.responses import Response
+from ..models.responses import Response, ErrorResponse, SuccessResponse
+from ..logging import logging
 
 import asyncio
 
@@ -32,8 +33,14 @@ class DataHandler:
 
     async def write_response(self, response: Response) -> None:
         """Writes the response.http_response.content of the given Response to the open file. Make sure to run open_file() first."""
-        if response.error is not None or response.http_response is None:
+
+        if isinstance(response, ErrorResponse):
+            logging.log(
+                f"Caught {type(response.error).__name__} while writing Response from {response.url}. Skipping response.",
+                logging.Severity.ERROR
+            )
             return
+        
         await asyncio.to_thread(self._write, response.http_response.content)
 
 

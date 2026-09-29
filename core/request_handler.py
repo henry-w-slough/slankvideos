@@ -1,6 +1,6 @@
 from .. import logging
 from ..models.request import Request
-from ..models.responses import Response
+from ..models.responses import ErrorResponse, SuccessResponse, Response
 
 from typing import Callable, Awaitable
 import asyncio
@@ -56,47 +56,41 @@ class RequestHandler:
                     *args, **kwargs
                 )
             http_response.raise_for_status()
-            response = Response(
-                True,
+            response = SuccessResponse(
                 request.url,
                 http_response,
             )
         
         except httpx.ConnectError as e:
-            response = Response(
-                False,
+            response = ErrorResponse(
                 request.url,
                 error = e,
                 error_message = f"Failed to establish connection to '{request.url}'."
             )
 
         except httpx.ConnectTimeout as e:
-            response = Response(
-                False,
+            response = ErrorResponse(
                 request.url,
                 error = e,
                 error_message = f"Timed out while trying to connect to '{request.url}'."
             )
 
         except httpx.ReadTimeout as e:
-            response = Response(
-                False,
+            response = ErrorResponse(
                 request.url,
                 error = e,
                 error_message = f"Timed out while receiving data from '{request.url}'."
             )
 
         except httpx.PoolTimeout as e:
-            response = Response(
-                False,
+            response = ErrorResponse(
                 request.url,
                 error = e,
                 error_message = f"Timed out while trying to acquire connection from connection pool."
             )
 
         except httpx.HTTPStatusError as e:
-            response = Response(
-                False,
+            response = ErrorResponse(
                 request.url,
                 error = e,
                 error_message = f"Got {e.response.status_code} while connecting to '{request.url}'."
@@ -104,8 +98,7 @@ class RequestHandler:
 
 
         except httpx.RequestError as e:
-            response = Response(
-                False,
+            response = ErrorResponse(
                 request.url,
                 error = e,
                 error_message = f"HTTP request failed to '{request.url}'."
@@ -113,22 +106,19 @@ class RequestHandler:
 
 
         except Exception as e:
-            response = Response(
-                False,
+            response = ErrorResponse(
                 request.url,
                 error = e,
                 error_message = f"Caught unexpected exception while connecting to '{request.url}'"
             )
 
 
-        if response.ok:
-            assert response.http_response is not None
+        if isinstance(response, SuccessResponse):
             logging.log(
                 f"Request to {request.url} succeeded with response code {response.http_response.status_code}",
                 logging.Severity.INFO
             )
-        else:
-            assert response.error is not None
+        if isinstance(response, ErrorResponse):
             logging.log(
                 f"Request to {request.url} raised Exception (type: {type(response.error).__name__}). Message: '{response.error_message}'",
                 logging.Severity.ERROR

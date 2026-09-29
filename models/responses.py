@@ -1,27 +1,19 @@
 from dataclasses import dataclass
-from enum import Enum, auto
-
+from typing import Literal
 import httpx
 
 
-class Types(Enum):
-    Error = auto()
-    Success = auto()
-
-    
 @dataclass
-class Response:
-    """Response to an HTTP request. Can provide error information, or response information."""
-    ok: bool
+class SuccessResponse:
     url: str
+    http_response: httpx.Response
 
 
 @dataclass
-class SuccessResponse(Response):
-    http_response: httpx.Response | None = None
+class ErrorResponse:
+    url: str
+    error: Exception
+    error_message: str
 
 
-@dataclass
-class ErrorResponse(Response):
-    error: Exception | None = None
-    error_message: str = ""
+Response = SuccessResponse | ErrorResponse

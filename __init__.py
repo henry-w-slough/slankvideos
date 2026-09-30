@@ -10,4 +10,3 @@ from .models.proxy_data import ProxyData
 from .video_downloader import VideoDownloader
 
 from .logging import logging
-from .logging.pretty_log import PrettyLog

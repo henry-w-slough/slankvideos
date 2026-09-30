@@ -29,5 +29,10 @@ class M3U8Handler:
         return max(candidates, key=quality_score)
 
 
+    def get_init_segment_url(self, variant: m3u8.M3U8) -> str | None:
+        """Returns te first initialization segment of the variant if available."""
+        if not variant.segment_map:
+            return None
+        return variant.segment_map[0].absolute_uri
 
     

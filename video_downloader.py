@@ -67,10 +67,10 @@ class VideoDownloader:
             all_playlist_info = []
             all_playlist_info.extend(
                 M3U8Data(
-                    playlist.uri,
+                    playlist.absolute_uri,
                     master_info.headers
                 ) 
-                for playlist in master.playlists if playlist.uri is not None
+                for playlist in master.playlists if playlist.absolute_uri is not None
             )
 
             variant_info = self.m3u8_handler.get_best_variant(all_playlist_info)
@@ -90,24 +90,38 @@ class VideoDownloader:
 
 
         segment_requests = []
+
+        init_segment_url = self.m3u8_handler.get_init_segment_url(variant)
+        if init_segment_url:
+            segment_requests.append(
+                Request(
+                    init_segment_url,
+                    "get",
+                    variant_info.headers
+                )
+            )
+
         segment_requests.extend(
             Request(
-                seg.uri,
+                seg.absolute_uri,
                 "get",
                 variant_info.headers
-            ) for seg in variant.segments if seg.uri is not None
+            ) for seg in variant.segments if seg.absolute_uri is not None
         )
 
 
-        os.makedirs(os.path.dirname(src), exist_ok=True)
-        self.data_handler.open_file(src)
+        src_temp_path = f"temp_{src}"
+        os.makedirs(os.path.dirname(src_temp_path), exist_ok=True)
+        self.data_handler.open_file(src_temp_path)
 
         await self.request_handler.request_batch(
             segment_requests,
-            self.data_handler.write_response
+            self.data_handler.write_response,
         )
 
         self.data_handler.close_file()
+
+        await self.data_handler.transcode_file(src_temp_path, src)
         
 
 

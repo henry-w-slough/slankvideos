@@ -47,9 +47,11 @@ class RequestHandler:
         ]
 
 
-    async def request_batch(self, requests: list[Request], on_result: Callable[[Response], Awaitable[None]]) -> None:
+    async def request_batch(self, requests: list[Request], on_result: Callable[[Response], Awaitable[None]], *args) -> None:
         """Takes the given requests and passes their responses into on_result().
         Note that on_result must take a Response as an argument.
+
+        Any optional args used will be passed to on_result(result, *args).
         """
         results = await asyncio.gather(
             *(self.send_request(request) 
@@ -58,7 +60,7 @@ class RequestHandler:
         )
         #iterating after getting results - to ensure order
         for result in results:
-            await on_result(result)
+            await on_result(result, *args)
 
 
     async def send_request(self, request: Request, retries: int = 3, *args, **kwargs) -> Response:

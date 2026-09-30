@@ -10,8 +10,9 @@ from playwright.async_api import (
     async_playwright,
 )
 
-from ..models.m3u8_data import M3U8Data
+from ..models.data_types.m3u8_data import M3U8Data
 from ..logging import logging
+from ..models.errors.failed_web_scrape import FailedWebScrape
 
 
 class WebScraper:
@@ -155,7 +156,7 @@ class WebScraper:
                 await asyncio.sleep(min(1.0, remaining))
 
             if not self.captured_m3u8s:
-                raise RuntimeError(f"No M3U8 URLs were observed while scraping {video_url}.")
+                raise FailedWebScrape(f"No M3U8 URLs were observed while scraping {video_url}.")
 
             logging.log(f"Successfully found M3U8 data from {video_url}.", logging.Severity.INFO)
             return self.captured_m3u8s

@@ -1,7 +1,7 @@
 from ..logging import logging
 from ..models.request import Request
 from ..models.responses import ErrorResponse, SuccessResponse, Response
-from ..models.proxy_data import ProxyData
+from ..models.data_types.proxy_data import ProxyData
 
 from typing import Callable, Awaitable
 import asyncio

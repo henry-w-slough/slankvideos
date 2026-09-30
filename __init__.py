@@ -5,7 +5,8 @@ from .core.data_handler import DataHandler
 
 from .models.request import Request
 from .models.responses import Response, ErrorResponse, SuccessResponse
-from .models.proxy_data import ProxyData
+from .models.data_types.proxy_data import ProxyData
+from .models.data_types.formats import VideoFormat
 
 from .video_downloader import VideoDownloader
 

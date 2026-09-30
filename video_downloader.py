@@ -4,7 +4,7 @@ from .core.m3u8_handler import M3U8Handler
 from .core.data_handler import DataHandler
 from .models.request import Request
 from .models.responses import Response, ErrorResponse, SuccessResponse
-from .models.m3u8_data import M3U8Data
+from .models.data_types.m3u8_data import M3U8Data
 from .logging import logging
 
 import m3u8
@@ -123,7 +123,7 @@ class VideoDownloader:
 
         self.data_handler.close_file()
 
-        os.makedirs(src, exist_ok=True)
+        os.makedirs(os.path.dirname(src), exist_ok=True)
 
         await self.data_handler.transcode_file(temp_src, src)
         

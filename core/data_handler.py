@@ -1,5 +1,5 @@
 from ..models.responses import Response, ErrorResponse, SuccessResponse
-from ..models.formats import VideoFormat
+from ..models.data_types.formats import VideoFormat
 import asyncio
 import os
 
@@ -23,25 +23,23 @@ class DataHandler:
         await asyncio.to_thread(self._write, response.http_response.content)
 
 
-    async def transcode_file(self, src: str, dest: str, format: VideoFormat | None = None, delete_src: bool = True) -> str:
-        """Passes src to ffmpeg directly to transcode into dest. Note that dest must ONLY be the filename without the extension,
-        as ffmpeg will infer the format based on the extension, which is set with the optional format arg.
-        
-        Returns the path of dest with it's new format."""
+    async def transcode_file(self, original_src: str, transcoded_src: str, format: VideoFormat | None = None, delete_src: bool = True) -> None:
+        """Takes the source of an untranscoded file and transcodes it, putting the new version  in transcoded_src.
+        Optionally, you can pass in a VideoFormat to specify transcoding file type, or specify whether to delete the untranscoded file path."""
 
         if format is None:
             format = self.default_format
 
-        dest_filename = f"{dest}{format.extension}"
+        transcoded_path = f"{transcoded_src}{format.extension}"
 
-        os.makedirs(os.path.dirname(dest_filename), exist_ok=True)
+        os.makedirs(os.path.dirname(transcoded_path), exist_ok=True)
 
         args = [
             "ffmpeg", 
-            "-i", src, 
+            "-i", original_src, 
             "-c", "copy", 
             "-movflags", 
-            "+faststart", dest_filename]
+            "+faststart", transcoded_path]
 
         process = await asyncio.create_subprocess_exec(
             *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
@@ -52,10 +50,8 @@ class DataHandler:
             raise RuntimeError(f"ffmpeg failed: {stderr.decode(errors='replace')}")
 
         if delete_src:
-            os.remove(src)
+            os.remove(original_src)
 
-        return dest_filename
-    
 
     def _write(self, data: bytes) -> None:
         

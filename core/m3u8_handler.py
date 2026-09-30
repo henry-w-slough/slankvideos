@@ -1,7 +1,7 @@
 import m3u8
 import re
 
-from ..models.m3u8_data import M3U8Data
+from ..models.data_types.m3u8_data import M3U8Data
 
 
 class M3U8Handler:

@@ -110,9 +110,11 @@ class VideoDownloader:
         )
 
 
-        src_temp_path = f"temp_{src}"
-        os.makedirs(os.path.dirname(src_temp_path), exist_ok=True)
-        self.data_handler.open_file(src_temp_path)
+
+        temp_src = f"temp_{src}"
+        os.makedirs(os.path.dirname(temp_src), exist_ok=True)
+
+        self.data_handler.open_file(temp_src)
 
         await self.request_handler.request_batch(
             segment_requests,
@@ -121,7 +123,9 @@ class VideoDownloader:
 
         self.data_handler.close_file()
 
-        await self.data_handler.transcode_file(src_temp_path, src)
+        os.makedirs(src, exist_ok=True)
+
+        await self.data_handler.transcode_file(temp_src, src)
         
 
 

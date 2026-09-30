@@ -2,11 +2,11 @@ from enum import Enum
 
 
 class VideoFormat(Enum):
-    TS = "ts"
-    MP4 = "mp4"
-    MKV = "mkv"
-    AVI = "avi"
-    FLV = "flv"
+    TS = ".ts"
+    MP4 = ".mp4"
+    MKV = ".mkv"
+    AVI = ".avi"
+    FLV = ".flv"
 
 
     @property

@@ -11,6 +11,7 @@ from playwright.async_api import (
 )
 
 from ..models.m3u8_data import M3U8Data
+from ..logging import logging
 
 
 class WebScraper:
@@ -119,6 +120,11 @@ class WebScraper:
         # Register request interception BEFORE navigation.
         page.on("request", self._capture_request)
 
+        logging.log(
+            f"Started web scrape on URL: {video_url}",
+            logging.Severity.INFO
+        )
+
         try:
             await page.goto(
                 video_url,
@@ -151,6 +157,7 @@ class WebScraper:
             if not self.captured_m3u8s:
                 raise RuntimeError(f"No M3U8 URLs were observed while scraping {video_url}.")
 
+            logging.log(f"Successfully found M3U8 data from {video_url}.", logging.Severity.INFO)
             return self.captured_m3u8s
 
         finally:
@@ -230,7 +237,7 @@ class WebScraper:
         }
 
         if self.context is None:
-            raise RuntimeError
+            raise RuntimeError("Context was not initialized.")
 
         m3u8_data = M3U8Data(
             url,

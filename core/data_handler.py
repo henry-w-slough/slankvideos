@@ -32,7 +32,7 @@ class DataHandler:
         if format is None:
             format = self.default_format
 
-        dest_filename = f"{dest}.{format.extension}"
+        dest_filename = f"{dest}{format.extension}"
 
         os.makedirs(os.path.dirname(dest_filename), exist_ok=True)
 

@@ -11,7 +11,7 @@ import httpx
 class RequestHandler:
 
 
-    def __init__(self, max_connections: int = 200, max_requests: int = 100, request_timeout: float = 30.0, proxy: ProxyData | None = None):
+    def __init__(self, max_connections: int = 200, max_requests: int = 100, request_timeout: float = 30.0, retries: int = 3, proxy: ProxyData | None = None):
         """Handles all HTTP requests and error handling for requests."""
 
 
@@ -31,6 +31,9 @@ class RequestHandler:
                 "https://": httpx.AsyncHTTPTransport(proxy=proxy.https) if proxy is not None else None,
             }
         )
+
+
+        self.retries = retries
 
         #note that this is just limited for the sake of the
         #other server. Having 1000 requests at once is a lot harder
@@ -63,7 +66,7 @@ class RequestHandler:
             await on_result(result, *args)
 
 
-    async def send_request(self, request: Request, retries: int = 3, *args, **kwargs) -> Response:
+    async def send_request(self, request: Request, *args, **kwargs) -> Response:
 
         #fallback for an unbound or None response
         response: Response = ErrorResponse(
@@ -72,7 +75,7 @@ class RequestHandler:
             "No response type was provided during request."
         )
 
-        for r in range(retries+1):
+        for r in range(self.retries+1):
 
             try:
                 async with self.semaphore:

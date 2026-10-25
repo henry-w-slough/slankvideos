@@ -31,8 +31,10 @@ class DataHandler:
             format = self.default_format
 
         transcoded_path = f"{transcoded_src}{format.extension}"
+        destination_dir = os.path.dirname(transcoded_path)
 
-        os.makedirs(os.path.dirname(transcoded_path), exist_ok=True)
+        if destination_dir:
+            os.makedirs(destination_dir, exist_ok=True)
 
         args = [
             "ffmpeg", 

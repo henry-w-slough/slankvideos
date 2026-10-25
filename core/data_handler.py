@@ -1,5 +1,6 @@
 from ..models.responses import Response, ErrorResponse, SuccessResponse
 from ..models.data_types.formats import VideoFormat
+from ..logging import logging
 import asyncio
 import os
 
@@ -43,6 +44,11 @@ class DataHandler:
             "-movflags", 
             "+faststart", transcoded_path]
 
+        logging.log(
+            f"Starting transcode from '{os.path.abspath(original_src)}' to '{os.path.abspath(transcoded_path)}' in {format.name} format.",
+            logging.Severity.INFO,
+        )
+
         process = await asyncio.create_subprocess_exec(
             *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )
@@ -66,6 +72,10 @@ class DataHandler:
     def open_file(self, src: str) -> None:
         """Opens the given file path for writing bytes."""
         self._file = open(src, "wb")
+        logging.log(
+            f"Opened file for writing: '{os.path.abspath(src)}'.",
+            logging.Severity.INFO,
+        )
 
 
     def close_file(self) -> None:

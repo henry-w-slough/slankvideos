@@ -159,7 +159,7 @@ class RequestHandler:
             if isinstance(response, SuccessResponse):
                 logging.log(
                     f"Request to {request.url} succeeded with response code {response.http_response.status_code}",
-                    logging.Severity.INFO
+                    logging.Severity.SUCCESS
                 )
                 break
 

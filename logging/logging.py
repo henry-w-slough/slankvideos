@@ -7,11 +7,12 @@ from enum import Enum, auto
 from collections import deque
 
 
-
 class Severity(Enum):
+    SUCCESS = auto()
     INFO = auto()
     WARNING = auto()
     ERROR = auto()
+
 
 
 @dataclass

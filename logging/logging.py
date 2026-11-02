@@ -25,11 +25,15 @@ _max_logs = 5000
 _logs: deque[Log] = deque(maxlen=_max_logs)
 
 
-def log(message: str, severity: Severity) -> None:
-    """Adds a Log object with the given values to the log history."""
+def log(message: str, severity: Severity, write_to_file: bool = False) -> None:
+    """Adds a Log object to history and optionally appends it to LOG.txt."""
     _logs.append(
         Log(message, severity)
     )
+
+    if write_to_file:
+        with open("LOG.txt", "a", encoding="utf-8") as log_file:
+            log_file.write(f"{severity.name}: {message}\n")
 
 
 def get_logs() -> list[Log]:

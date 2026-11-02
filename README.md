@@ -2,6 +2,7 @@
 
 `slankvideos` is a Python library for discovering HLS (`.m3u8`) streams in web pages, downloading media segments concurrently, and transcoding the result to a video file. It works great for self-hosted websites or data storage that need quick public accessibility.
 
+
 ## Features
 
 - Discovers HLS playlist requests with Playwright and Chromium
@@ -11,6 +12,7 @@
 - Downloads segments concurrently through `httpx`
 - Transcodes output with FFmpeg and validates completed files with FFprobe
 - Supports MP4, MKV, AVI, FLV, and MPEG transport stream output
+
 
 ## Requirements
 

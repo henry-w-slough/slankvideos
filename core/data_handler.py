@@ -55,7 +55,7 @@ class DataHandler:
             return False
 
 
-    async def transcode_file(self, original_src: str, transcoded_src: str, format: VideoFormat | None = None, delete_src: bool = True) -> None:
+    async def transcode_file(self, original_src: str, transcoded_src: str, format: VideoFormat | None = None, delete_src: bool = True, write_log_to_file: bool = False) -> None:
         """Takes the source of an untranscoded file and transcodes it, putting the new version  in transcoded_src.
         Optionally, you can pass in a VideoFormat to specify transcoding file type, or specify whether to delete the untranscoded file path."""
 
@@ -89,6 +89,7 @@ class DataHandler:
         logging.log(
             f"Starting transcode from '{os.path.abspath(original_src)}' to '{os.path.abspath(transcoded_path)}' in {format.name} format.",
             logging.Severity.INFO,
+            write_to_file=write_log_to_file,
         )
 
         try:
@@ -130,6 +131,7 @@ class DataHandler:
             logging.log(
                 f"Transcode completed successfully: '{os.path.abspath(transcoded_path)}'.",
                 logging.Severity.SUCCESS,
+                write_to_file=write_log_to_file,
             )
 
             if delete_src and os.path.exists(original_src):
@@ -141,6 +143,7 @@ class DataHandler:
             logging.log(
                 f"Transcoding from '{temporary_output}' failed: {type(error).__name__} caught in process. Removed temporary directory.",
                 logging.Severity.ERROR,
+                write_to_file=write_log_to_file,
             )
             raise
 
@@ -153,12 +156,13 @@ class DataHandler:
         self._file.write(data)
     
 
-    def open_file(self, src: str) -> None:
+    def open_file(self, src: str, write_log_to_file: bool = False) -> None:
         """Opens the given file path for writing bytes."""
         self._file = open(src, "wb")
         logging.log(
             f"Opened file for writing: '{os.path.abspath(src)}'.",
             logging.Severity.INFO,
+            write_to_file=write_log_to_file,
         )
 
 

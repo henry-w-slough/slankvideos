@@ -50,14 +50,14 @@ class RequestHandler:
         ]
 
 
-    async def request_batch(self, requests: list[Request], on_result: Callable[[Response], Awaitable[None]], *args) -> None:
+    async def request_batch(self, requests: list[Request], on_result: Callable[[Response], Awaitable[None]], *args, write_log_to_file: bool = False) -> None:
         """Takes the given requests and passes their responses into on_result().
         Note that on_result must take a Response as an argument.
 
         Any optional args used will be passed to on_result(result, *args).
         """
         results = await asyncio.gather(
-            *(self.send_request(request) 
+                        *(self.send_request(request, write_log_to_file=write_log_to_file)
               for request in requests
             )
         )
@@ -66,7 +66,7 @@ class RequestHandler:
             await on_result(result, *args)
 
 
-    async def send_request(self, request: Request, *args, **kwargs) -> Response:
+    async def send_request(self, request: Request, *args, write_log_to_file: bool = False, **kwargs) -> Response:
 
         #fallback for an unbound or None response
         response: Response = ErrorResponse(
@@ -147,19 +147,22 @@ class RequestHandler:
                 if type(response.error) in self._retryable_exceptions:
                     logging.log(
                         f"Retrying request to {request.url} after {r} retries. Raised Exception (type: {type(response.error).__name__}). Message: '{response.error_message}'",
-                        logging.Severity.WARNING
+                        logging.Severity.WARNING,
+                        write_to_file=write_log_to_file,
                     )  
                     continue
 
                 logging.log(
                     f"Request to {request.url} raised Exception (type: {type(response.error).__name__}). Message: '{response.error_message}'",
-                    logging.Severity.ERROR
+                    logging.Severity.ERROR,
+                    write_to_file=write_log_to_file,
                 )  
 
             if isinstance(response, SuccessResponse):
                 logging.log(
                     f"Request to {request.url} succeeded with response code {response.http_response.status_code}",
-                    logging.Severity.SUCCESS
+                    logging.Severity.SUCCESS,
+                    write_to_file=write_log_to_file,
                 )
                 break
 

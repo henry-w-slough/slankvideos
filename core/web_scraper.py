@@ -105,7 +105,7 @@ class WebScraper:
                 self.playwright = None
 
 
-    async def resolve_m3u8_playlists(self, video_url: str) -> list[M3U8Data]:
+    async def resolve_m3u8_playlists(self, video_url: str, write_log_to_file: bool = False) -> list[M3U8Data]:
         """
         Load a page and return M3U8 requests observed while the page
         initializes and attempts playback.
@@ -123,7 +123,8 @@ class WebScraper:
 
         logging.log(
             f"Started web scrape on URL: {video_url}",
-            logging.Severity.INFO
+            logging.Severity.INFO,
+            write_to_file=write_log_to_file,
         )
 
         try:
@@ -158,7 +159,11 @@ class WebScraper:
             if not self.captured_m3u8s:
                 raise FailedWebScrape(f"No M3U8 URLs were observed while scraping {video_url}.")
 
-            logging.log(f"Successfully found M3U8 data from {video_url}.", logging.Severity.INFO)
+            logging.log(
+                f"Successfully found M3U8 data from {video_url}.",
+                logging.Severity.INFO,
+                write_to_file=write_log_to_file,
+            )
             return self.captured_m3u8s
 
         finally:
